@@ -1,5 +1,6 @@
 import argparse
 import tempfile
+from lib.compression import compress
 
 from lib.ecc import rs_encode_to_binary
 from lib.gif import embed_data_in_frame, read_frames, write_frames
@@ -15,7 +16,7 @@ def encode(input_filename, output_filename, data, nsym):
         frames = read_frames(temp_filename)
 
     if frames:
-        data_bytes = data.encode('utf-8')
+        data_bytes = compress(data)
 
         # Calculate the total available space in the smallest frame
         smallest_frame = min(frames, key=lambda frame: frame.size[0] * frame.size[1])

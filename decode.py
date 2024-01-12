@@ -2,6 +2,7 @@ import argparse
 from collections import Counter
 
 from reedsolo import ReedSolomonError
+from lib.compression import decompress
 
 from lib.ecc import rs_decode_from_binary
 from lib.gif import extract_data_from_frame, read_frames
@@ -10,7 +11,7 @@ from lib.gif import extract_data_from_frame, read_frames
 def decode(input_filename, nsym):
     frames = read_frames(input_filename)
 
-    extracted_messages = []
+    messages = []
     is_corrupt = False
     
     for frame in frames:
@@ -21,27 +22,27 @@ def decode(input_filename, nsym):
 
         # Decode the Reed-Solomon encoded data
         try:
-            message_bytearray = rs_decode_from_binary(binary_data, nsym)
-            message = message_bytearray.decode('utf-8')
+            data_bytes = rs_decode_from_binary(binary_data, nsym)
+            data = decompress(data_bytes)
 
-            extracted_messages.append(message)
+            messages.append(data)
         except ReedSolomonError:
             is_corrupt = True
 
-    if len(extracted_messages) == 0:
+    if len(messages) == 0:
         return "", is_corrupt
     
-    if len(set(extracted_messages)) != 1:
+    if len(set(messages)) != 1:
         # The extracted messages are not all the same. We can attempt to recover it
         recovered_data = ""
-        longest_element = max(extracted_messages, key=len)
+        longest_element = max(messages, key=len)
         for i in range(len(longest_element)):
-            characters = [frame[i] if i < len(frame) else "" for frame in extracted_messages]
+            characters = [frame[i] if i < len(frame) else "" for frame in messages]
             majority_vote = Counter(characters).most_common(1)[0][0]
             recovered_data += majority_vote
         return recovered_data, True
 
-    return extracted_messages[0], is_corrupt
+    return messages[0], is_corrupt
     
 
 if __name__ == "__main__":
