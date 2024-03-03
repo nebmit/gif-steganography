@@ -3,7 +3,7 @@ from PIL import Image, ImageSequence
 
 def read_frames(filename):
     with Image.open(filename) as img:
-        return [frame.copy() for frame in ImageSequence.Iterator(img)]
+        return [frame.copy().convert("RGB") for frame in ImageSequence.Iterator(img)]
 
 def write_frames(frames, output_filename):
     rgb_frames = [frame.convert("RGB") for frame in frames]  # Convert each frame to RGB

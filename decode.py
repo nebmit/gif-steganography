@@ -2,8 +2,8 @@ import argparse
 from collections import Counter
 
 from reedsolo import ReedSolomonError
-from lib.compression import decompress
 
+from lib.compression import decompress
 from lib.ecc import rs_decode_from_binary
 from lib.gif import extract_data_from_frame, read_frames
 
@@ -60,4 +60,3 @@ if __name__ == "__main__":
                "of the recovered data cannot be fully assured.\n\033[0m")
     
     print(message)
-
