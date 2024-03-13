@@ -3,6 +3,7 @@ import tempfile
 
 from lib.compression import compress
 from lib.ecc import rs_encode_to_binary
+from lib.encryption import encrypt_message
 from lib.gif import embed_data_in_frame, read_frames, write_frames
 
 
@@ -42,11 +43,14 @@ if __name__ == "__main__":
     parser.add_argument("input_file", type=str, help="Path to the input GIF file.")
     parser.add_argument("output_file", type=str, help="Path to the output GIF file.")
     parser.add_argument("text", type=str, help="Text data to be encoded into the GIF.")
+    parser.add_argument("passphrase", type=str, help="Passphrase to be used for encoding.")
     parser.add_argument("--nsym", type=int, default=10, help="Factor for error correction (default: 10)")
 
     args = parser.parse_args()
+
+    encrypted_data = encrypt_message(args.text, args.passphrase)
     
     try:
-        encode(args.input_file, args.output_file, args.text, args.nsym)
+        encode(args.input_file, args.output_file, encrypted_data, args.nsym)
     except ValueError as e:
         print(e)

@@ -1,10 +1,12 @@
 import argparse
 from collections import Counter
 
+from cryptography.fernet import InvalidToken
 from reedsolo import ReedSolomonError
 
 from lib.compression import decompress
 from lib.ecc import rs_decode_from_binary
+from lib.encryption import decrypt_message
 from lib.gif import extract_data_from_frame, read_frames
 
 
@@ -48,15 +50,23 @@ def decode(input_filename, nsym):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Decode text from a GIF.")
     parser.add_argument("input_file", type=str, help="Path to the input GIF file.")
+    parser.add_argument("passphrase", type=str, help="Passphrase to be used for decoding.")
     parser.add_argument("--nsym", type=int, default=10, help="Factor for error correction (default: 10)")
 
     args = parser.parse_args()
 
-    message, is_corrupt = decode(args.input_file, args.nsym)
+    encrypted_message, is_corrupt = decode(args.input_file, args.nsym)
 
-    if is_corrupt:
-        print("\033[93mNotice: Message data has experienced partial or total corruption. "
-               "Recovery attempts have been executed, but the integrity "
-               "of the recovered data cannot be fully assured.\n\033[0m")
-    
-    print(message)
+    try:
+        data = decrypt_message(encrypted_message, args.passphrase)
+        if is_corrupt:
+            print("\033[93mWarning: The message may have been partially or fully corrupted. "
+                "While decryption was successful, the integrity of the data cannot be guaranteed.\033[0m\n")
+        print(data)
+    except InvalidToken:
+        if is_corrupt:
+            print("\033[91mError: Decryption failed. The message appears to be corrupted, which may affect its integrity. "
+                "This failure could be due to the corruption or an incorrect passphrase.\033[0m")
+        else:
+            print("\033[91mError: Decryption failed. This is likely due to an incorrect passphrase.\033[0m")
+        exit(1)
