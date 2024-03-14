@@ -1,7 +1,7 @@
 import base64
 import os
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -26,6 +26,8 @@ def encrypt_message(message: str, passphrase: str):
     return (salt + encrypted_message)
 
 def decrypt_message(encrypted_message_with_salt: bytes, passphrase: str):
+    if len(encrypted_message_with_salt) < 16:
+        raise InvalidToken("Invalid message")
     salt = encrypted_message_with_salt[:16]
     encrypted_message = encrypted_message_with_salt[16:]
     key = derive_key(passphrase, salt)
