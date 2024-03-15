@@ -13,9 +13,10 @@ This project implements GIF steganography using the Least Significant Bit (LSB) 
 
 ## Project Structure
 
-- `lib/`: Contains modules for compression, encryption, error correction, and GIF manipulation.
-- `encode.py`: Script to encode messages into GIFs.
-- `decode.py`: Script to decode messages from GIFs.
+- `src/`: Contains the main project files.
+- `src/gif-steganography/decode.py`: Script to decode messages from GIFs.
+- `src/gif-steganography/encode.py`: Script to encode messages into GIFs.
+- `src/gif-steganography/lib/`: Contains modules for compression, encryption, error correction, and GIF manipulation.
 
 ## Installation
 
@@ -32,7 +33,7 @@ pip install -r requirements.txt
 To encode data into a GIF image, use the `encode.py` script. You'll need to provide the input GIF file, the output GIF file name, the text you wish to encode, and a passphrase for encryption.
 
 ```bash
-python encode.py <input.gif> <output.gif> "Secret Message" "YourPassphrase" --nsym 10
+python src/gif-steganography/encode.py <input.gif> <output.gif> "Secret Message" "YourPassphrase" --nsym 10
 ```
 
 - `--nsym` is optional and specifies the Reed-Solomon error correction factor (default is 10).
@@ -42,7 +43,7 @@ python encode.py <input.gif> <output.gif> "Secret Message" "YourPassphrase" --ns
 To decode the secret message from a GIF image, use the `decode.py` script. Provide the GIF file containing the encoded message and the passphrase used for encoding.
 
 ```bash
-python decode.py <encoded.gif> "YourPassphrase" --nsym 10
+python src/gif-steganography/decode.py <encoded.gif> "YourPassphrase" --nsym 10
 ```
 
 - `--nsym` must match the value used during encoding.

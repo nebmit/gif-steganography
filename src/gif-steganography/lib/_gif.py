@@ -1,11 +1,13 @@
+from typing import List
+
 from PIL import Image, ImageSequence
 
 
-def read_frames(filename):
+def _read_frames(filename: str) -> List[Image.Image]:
     with Image.open(filename) as img:
         return [frame.copy().convert("RGB") for frame in ImageSequence.Iterator(img)]
 
-def write_frames(frames, output_filename):
+def _write_frames(frames: List[Image.Image], output_filename: str) -> None:
     rgb_frames = [frame.convert("RGB") for frame in frames]  # Convert each frame to RGB
     rgb_frames[0].save(output_filename, save_all=True, append_images=rgb_frames[1:], loop=0)
 
@@ -19,7 +21,7 @@ def _get_rgb_from_pixel(pixel):
             return pixel[0:3]
     raise ValueError("Unknown pixel value")
 
-def extract_data_from_frame(frame):
+def _extract_data_from_frame(frame: Image.Image) -> str:
     width, height = frame.size
     pixels = frame.load()
     binary_data = ""
@@ -39,7 +41,7 @@ def extract_data_from_frame(frame):
             
     return binary_data
 
-def embed_data_in_frame(frame, data):
+def _embed_data_in_frame(frame: Image.Image, data: str) -> Image.Image:
     width, height = frame.size
     pixels = frame.load()
 
