@@ -2,11 +2,13 @@ import argparse
 from collections import Counter
 from typing import List, Tuple
 
+from _exceptions import CorruptDataError, InvalidPassphraseError
 from cryptography.fernet import InvalidToken
 from lib._compression import _decompress
 from lib._ecc import _rs_decode_from_binary
 from lib._encryption import _decrypt_message
-from lib._gif import _extract_data_from_frame, _read_frames
+from lib._gif import _read_frames_as_rgb
+from modes._lsb import _extract_data_from_frame_lsb
 from reedsolo import ReedSolomonError
 
 
@@ -21,14 +23,14 @@ def decode(input_filename: str, nsym: int) -> Tuple[str, bool]:
     Returns:
         Tuple[str, bool]: A tuple containing the decoded message and a boolean indicating if the message is corrupt.
     """
-    frames = _read_frames(input_filename)
+    frames = _read_frames_as_rgb(input_filename)
 
     messages: List[str] = []
     is_corrupt: bool = False
     
     for frame in frames:
         # Extract the binary data from the frame
-        binary_data: str = _extract_data_from_frame(frame)
+        binary_data: str = _extract_data_from_frame_lsb(frame)
         if len(binary_data) == 0:
             continue # An empty frame could exist if it's a palette frame
 
@@ -77,8 +79,8 @@ def decode_encrypted(input_filename: str, passphrase: str, nsym: int) -> Tuple[s
         return data, is_corrupt
     except InvalidToken:
         if is_corrupt:
-            raise ValueError("Decryption failed. The message appears to be corrupted, which may affect its integrity. This failure could be due to the corruption or an incorrect passphrase.")
-        raise ValueError("Decryption failed. This is likely due to an incorrect passphrase.")
+            raise CorruptDataError("Decryption failed. The message appears to be corrupted, which may affect its integrity. This failure could be due to the corruption or an incorrect passphrase.")
+        raise InvalidPassphraseError("Decryption failed. This is likely due to an incorrect passphrase.")
 
 
 if __name__ == "__main__":

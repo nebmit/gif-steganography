@@ -2,10 +2,12 @@ import argparse
 import tempfile
 from typing import List
 
+from _exceptions import CapacityError
 from lib._compression import _compress
 from lib._ecc import _rs_encode_to_binary
 from lib._encryption import _encrypt_message
-from lib._gif import _embed_data_in_frame, _read_frames, _write_frames
+from lib._gif import _read_frames_as_rgb, _write_frames_as_rgb
+from modes._lsb import _embed_data_in_frame_lsb
 from PIL import Image
 
 
@@ -25,13 +27,13 @@ def encode(input_filename: str, output_filename: str, data: bytes, nsym: int) ->
     Returns:
         None
     """
-    frames: List[Image.Image] = _read_frames(input_filename)
+    frames: List[Image.Image] = _read_frames_as_rgb(input_filename)
 
     # The save operation changes a GIF's palette, so we need to re-read it
     with tempfile.NamedTemporaryFile(suffix='.gif') as temp_file:
         temp_filename: str = temp_file.name
-        _write_frames(frames, temp_filename)
-        frames = _read_frames(temp_filename)
+        _write_frames_as_rgb(frames, temp_filename)
+        frames = _read_frames_as_rgb(temp_filename)
 
     if frames:
         data_bytes: bytes = _compress(data)
@@ -42,7 +44,7 @@ def encode(input_filename: str, output_filename: str, data: bytes, nsym: int) ->
         total_bytes: int = total_bits // 8  # Convert bits to bytes
 
         if len(data_bytes) > total_bytes:
-            raise ValueError("Input data too large to fit in the input file.")
+            raise CapacityError("Input data too large to fit in the input file.")
 
         # Pad the data with null bytes to fill the frame
         filler_bytes: bytes = b'\x00' * (total_bytes - len(data_bytes) - nsym)
@@ -51,9 +53,11 @@ def encode(input_filename: str, output_filename: str, data: bytes, nsym: int) ->
         binary_data: bytes = _rs_encode_to_binary(data_bytes + filler_bytes, nsym)
 
         # Embed the data in the frames
-        modified_frames: List[Image.Image] = [_embed_data_in_frame(frame, binary_data) for frame in frames]
+        for frame in frames:
+            # Mirror the data to embed it in all frames
+            _embed_data_in_frame_lsb(frame, binary_data)
 
-        _write_frames(modified_frames, output_filename)
+        _write_frames_as_rgb(frames, output_filename)
 
 def encode_encrypted(input_filename: str, output_filename: str, message: str, passphrase: str, nsym: int) -> None:
     """
@@ -67,7 +71,7 @@ def encode_encrypted(input_filename: str, output_filename: str, message: str, pa
         nsym (int): Factor for error correction.
 
     Raises:
-        ValueError: If the input data is too large to fit in the input file.
+        CapacityError: If the input data is too large to fit in the input file.
 
     Returns:
         None
