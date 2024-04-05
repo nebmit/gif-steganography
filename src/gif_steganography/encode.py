@@ -1,14 +1,14 @@
-import argparse
 import tempfile
 from typing import List
 
-from _exceptions import CapacityError
-from lib._compression import _compress
-from lib._ecc import _rs_encode_to_binary
-from lib._encryption import _encrypt_message
-from lib._gif import _read_frames_as_rgb, _write_frames_as_rgb
-from modes._lsb import _embed_data_in_frame_lsb
 from PIL import Image
+
+from .exceptions import CapacityError
+from .lib._compression import _compress
+from .lib._ecc import _rs_encode_to_binary
+from .lib._encryption import _encrypt_message
+from .lib._gif import _read_frames_as_rgb, _write_frames_as_rgb
+from .modes._lsb import _embed_data_in_frame_lsb
 
 
 def encode(input_filename: str, output_filename: str, data: bytes, nsym: int) -> None:
@@ -78,19 +78,3 @@ def encode_encrypted(input_filename: str, output_filename: str, message: str, pa
     """
     encrypted_message: bytes = _encrypt_message(message, passphrase)
     encode(input_filename, output_filename, encrypted_message, nsym)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Encode text into a GIF.")
-    parser.add_argument("input_file", type=str, help="Path to the input GIF file.")
-    parser.add_argument("output_file", type=str, help="Path to the output GIF file.")
-    parser.add_argument("text", type=str, help="Text data to be encoded into the GIF.")
-    parser.add_argument("passphrase", type=str, help="Passphrase to be used for encoding.")
-    parser.add_argument("--nsym", type=int, default=10, help="Factor for error correction (default: 10)")
-
-    args = parser.parse_args()
-
-    try:
-        encode_encrypted(args.input_file, args.output_file, args.text, args.passphrase, args.nsym)
-    except ValueError as e:
-        print(e)

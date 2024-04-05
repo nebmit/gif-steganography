@@ -14,39 +14,49 @@ This project implements GIF steganography using the Least Significant Bit (LSB) 
 ## Project Structure
 
 - `src/`: Contains the main project files.
-- `src/gif-steganography/decode.py`: Script to decode messages from GIFs.
-- `src/gif-steganography/encode.py`: Script to encode messages into GIFs.
-- `src/gif-steganography/lib/`: Contains modules for compression, encryption, error correction, and GIF manipulation.
+- `src/gif_steganography/cli.py`: Command-line interface for encoding and decoding messages.
+- `src/gif_steganography/decode.py`: Script to decode messages from GIFs.
+- `src/gif_steganography/encode.py`: Script to encode messages into GIFs.
+- `src/gif_steganography/lib/`: Contains modules for compression, encryption, error correction, and file operations.
+- `src/gif_steganography/modes/`: Contains the encoding and decoding logic for the GIF steganography.
+
 
 ## Installation
 
-Ensure you have Python 3.x installed on your system. Clone this repository, then install the required dependencies by running:
+Install directly from PyPI with Python 3.x:
 
 ```bash
-pip install -r requirements.txt
+pip install gif-steganography
 ```
+
+This command installs `gif-steganography` and its dependencies, making it ready for immediate use.
+
 
 ## Usage
 
+This package provides a command-line interface for encoding and decoding secret messages within GIF images using steganography. Ensure the package is installed in your environment to access these features directly from your terminal.
+
 ### Encoding Data into a GIF
 
-To encode data into a GIF image, use the `encode.py` script. You'll need to provide the input GIF file, the output GIF file name, the text you wish to encode, and a passphrase for encryption.
+To encode data into a GIF image, you can use the command-line interface directly. You will need to specify the input GIF file, the output file name for the encoded GIF, the secret message you wish to encode, and a passphrase for encryption.
 
 ```bash
-python src/gif-steganography/encode.py <input.gif> <output.gif> "Secret Message" "YourPassphrase" --nsym 10
+gif-steganography encode <input.gif> <output.gif> "Secret Message" "YourPassphrase" --nsym 10
 ```
 
-- `--nsym` is optional and specifies the Reed-Solomon error correction factor (default is 10).
+- `--nsym` is an optional argument that specifies the Reed-Solomon error correction factor, enhancing the durability of the encoded data against image alterations. The default value is 10.
 
 ### Decoding Data from a GIF
 
-To decode the secret message from a GIF image, use the `decode.py` script. Provide the GIF file containing the encoded message and the passphrase used for encoding.
+To decode a secret message from a GIF image, simply use the decode functionality provided by the command-line interface. Input the GIF file that contains the encoded message and the passphrase that was used for encoding.
 
 ```bash
-python src/gif-steganography/decode.py <encoded.gif> "YourPassphrase" --nsym 10
+gif-steganography decode <encoded.gif> "YourPassphrase" --nsym 10
 ```
 
-- `--nsym` must match the value used during encoding.
+- Ensure that the `--nsym` value matches the one used during the encoding process for successful decryption.
+
+These commands allow you to seamlessly encode and decode messages within GIF images right from your terminal, leveraging the steganographic capabilities of the package without direct interaction with the Python scripts.
 
 ## License
 

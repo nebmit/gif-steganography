@@ -1,5 +1,4 @@
-from _exceptions import CapacityError
-from lib._gif import _get_rgb_from_pixel
+from ..lib._gif import _get_rgb_from_pixel
 from PIL import Image
 
 

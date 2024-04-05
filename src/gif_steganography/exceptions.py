@@ -34,3 +34,7 @@ class InvalidPassphraseError(CryptoError):
     def __init__(self, message="The passphrase is invalid."):
         super().__init__(message)
 
+class InternalError(CustomError):
+    """Raised when an internal error occurs"""
+    def __init__(self, message="An unspecified internal error occurred."):
+        super().__init__(message)
