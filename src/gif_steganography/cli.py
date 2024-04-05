@@ -1,8 +1,8 @@
 import argparse
 
+from .common import CorruptDataError, InvalidPassphraseError
 from .decode import decode_encrypted
 from .encode import encode_encrypted
-from .exceptions import CorruptDataError, InvalidPassphraseError
 
 
 def main():

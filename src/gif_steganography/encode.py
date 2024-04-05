@@ -3,7 +3,7 @@ from typing import List
 
 from PIL import Image
 
-from .exceptions import CapacityError
+from .common import CapacityError, SteganographyMethod
 from .lib._compression import _compress
 from .lib._ecc import _rs_encode_to_binary
 from .lib._encryption import _encrypt_message
@@ -11,7 +11,7 @@ from .lib._gif import _read_frames_as_rgb, _write_frames_as_rgb
 from .modes._lsb import _embed_data_in_frame_lsb
 
 
-def encode(input_filename: str, output_filename: str, data: bytes, nsym: int) -> None:
+def encode(input_filename: str, output_filename: str, data: bytes, mode: SteganographyMethod = SteganographyMethod.LSB, nsym: int = 10) -> None:
     """
     Encode data into a GIF file.
 
@@ -59,7 +59,7 @@ def encode(input_filename: str, output_filename: str, data: bytes, nsym: int) ->
 
         _write_frames_as_rgb(frames, output_filename)
 
-def encode_encrypted(input_filename: str, output_filename: str, message: str, passphrase: str, nsym: int) -> None:
+def encode_encrypted(input_filename: str, output_filename: str, message: str, passphrase: str, mode: SteganographyMethod = SteganographyMethod.LSB, nsym: int = 10) -> None:
     """
     Encode an encrypted message into a GIF file.
 

@@ -4,7 +4,8 @@ from typing import List, Tuple
 from cryptography.fernet import InvalidToken
 from reedsolo import ReedSolomonError
 
-from .exceptions import CorruptDataError, InvalidPassphraseError
+from .common import (CorruptDataError, InvalidPassphraseError,
+                     SteganographyMethod)
 from .lib._compression import _decompress
 from .lib._ecc import _rs_decode_from_binary
 from .lib._encryption import _decrypt_message
@@ -12,7 +13,7 @@ from .lib._gif import _read_frames_as_rgb
 from .modes._lsb import _extract_data_from_frame_lsb
 
 
-def decode(input_filename: str, nsym: int) -> Tuple[str, bool]:
+def decode(input_filename: str, mode: SteganographyMethod = SteganographyMethod.LSB, nsym: int = 10) -> Tuple[str | bytes, bool]:
     """
     Decode the hidden message from a GIF file.
 
@@ -25,7 +26,7 @@ def decode(input_filename: str, nsym: int) -> Tuple[str, bool]:
     """
     frames = _read_frames_as_rgb(input_filename)
 
-    messages: List[str] = []
+    messages: List[bytes] = []
     is_corrupt: bool = False
     
     for frame in frames:
@@ -37,7 +38,7 @@ def decode(input_filename: str, nsym: int) -> Tuple[str, bool]:
         # Decode the Reed-Solomon encoded data
         try:
             data_bytes: bytes = _rs_decode_from_binary(binary_data, nsym)
-            data: str = _decompress(data_bytes)
+            data: bytes = _decompress(data_bytes)
 
             messages.append(data)
         except ReedSolomonError:
@@ -56,9 +57,15 @@ def decode(input_filename: str, nsym: int) -> Tuple[str, bool]:
             recovered_data += majority_vote
         return recovered_data, True
 
-    return messages[0], is_corrupt
+    # Try to decode the message, if it's encrypted it will fail
+    try:
+        message = messages[0].decode()
+    except UnicodeDecodeError:
+        message = messages[0]
 
-def decode_encrypted(input_filename: str, passphrase: str, nsym: int) -> Tuple[str, bool]:
+    return message, is_corrupt
+
+def decode_encrypted(input_filename: str, passphrase: str, mode: SteganographyMethod = SteganographyMethod.LSB, nsym: int = 10) -> Tuple[str, bool]:
     """
     Decode and decrypt the hidden message from an encrypted GIF file.
 

@@ -1,3 +1,11 @@
+from enum import Enum, auto
+
+
+class SteganographyMethod(Enum):
+    LSB = auto()
+    CSHIFT = auto()
+
+
 class CustomError(Exception):
     """Base class for other exceptions"""
     def __init__(self, message="An unspecified error occurred."):
