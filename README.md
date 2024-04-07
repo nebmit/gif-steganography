@@ -9,7 +9,7 @@ This project implements GIF steganography using the Least Significant Bit (LSB) 
 ```bash
 pip install gif-steganography
 ```
-Requires Python 3.x. Installs the package and all necessary dependencies.
+Requires Python 3.10+ Installs the package and all necessary dependencies.
 
 ## Usage
 
