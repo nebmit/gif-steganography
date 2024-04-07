@@ -1,3 +1,6 @@
 __pycache__
+.pdm.toml
 *.egg-info
+*.gif
 build
+dist
