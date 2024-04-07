@@ -17,11 +17,12 @@ def _extract_data_from_frame_lsb(frame: Image.Image) -> str:
 
             # Extract bits from the red, green, and blue components
             bits = [r & 1, g & 1, b & 1]
-            bit = set(bits).pop() # Get the majority vote
+            bit = set(bits).pop()  # Get the majority vote
 
             binary_data += str(bit)
-            
+
     return binary_data
+
 
 def _embed_data_in_frame_lsb(frame: Image.Image, data: str) -> Image.Image:
     width, height = frame.size
@@ -45,4 +46,3 @@ def _embed_data_in_frame_lsb(frame: Image.Image, data: str) -> Image.Image:
             data_index += 1
 
             pixels[x, y] = (r, g, b)
-
