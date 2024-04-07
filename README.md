@@ -13,25 +13,27 @@ Requires Python 3.x. Installs the package and all necessary dependencies.
 
 ## Usage
 
-### Encode a Message
+### CLI
+
+#### Encode a Message
 
 ```bash
 gif-steganography encode <input.gif> <output.gif> "Secret Message" "Passphrase" [--nsym 10]
 ```
 - `--nsym` (optional): Sets the Reed-Solomon error correction level. Default is 10.
 
-### Decode a Message
+#### Decode a Message
 
 ```bash
 gif-steganography decode <encoded.gif> "Passphrase" [--nsym 10]
 ```
 - `--nsym` must match the encoding setting for successful decryption.
 
-## Programmatic Usage
+### Programmatic Usage
 
 Beyond the command-line interface, `gif-steganography` also provides direct API access for integrating steganographic functionalities into Python scripts.
 
-### Basic Encoding and Decoding
+#### Basic Encoding and Decoding
 
 Embed and retrieve messages programmatically:
 
@@ -39,25 +41,25 @@ Embed and retrieve messages programmatically:
 from gif_steganography import encode, decode
 
 # Embed a message
-encode("input.gif", "output.gif", b"Hello, world!")
+encode("input.gif", "output.gif", "Hello, world!")
 
 # Retrieve a message
 message, _ = decode("output.gif")
 print(message)  # Output: Hello, world!
 ```
 
-### Secure Encoding and Decoding
+#### Secure Encoding and Decoding
 
 For added security, use encryption with your messages:
 
 ```python
-from gif_steganography import encode_encrypted, decode_encrypted
+from gif_steganography import encode, decode
 
 # Securely embed a message
-encode_encrypted("input.gif", "output.gif", "Hello, world!", "password")
+encode("input.gif", "output.gif", "Hello, world!", passphrase="password")
 
 # Securely retrieve a message
-message, _ = decode_encrypted("output.gif", "password")
+message, _ = decode("output.gif", passphrase="password")
 print(message)  # Output: Hello, world!
 ```
 
