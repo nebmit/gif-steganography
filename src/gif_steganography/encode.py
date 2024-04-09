@@ -7,7 +7,13 @@ from .common import CapacityError, SteganographyMethod
 from .lib._compression import _compress
 from .lib._ecc import _rs_encode_to_binary
 from .lib._encryption import _encrypt_message
-from .lib._gif import _read_frames_as_rgb, _write_frames_as_rgb
+from .lib._gif import (
+    _read_frames_as_rgb,
+    _write_frames_as_rgb,
+    _read_frames_as_p,
+    _write_frames_as_p,
+)
+from .modes._cshift import _embed_data_in_frame_cshift
 from .modes._lsb import _embed_data_in_frame_lsb
 
 
@@ -43,23 +49,23 @@ def encode(
         # Convert the message to bytes
         data = message.encode()
 
-    frames: List[Image.Image] = _read_frames_as_rgb(input_filename)
+    data_bytes: bytes = _compress(data)
 
-    # The save operation changes a GIF's palette, so we need to re-read it
-    with tempfile.NamedTemporaryFile(suffix=".gif") as temp_file:
-        temp_filename: str = temp_file.name
-        _write_frames_as_rgb(frames, temp_filename)
-        frames = _read_frames_as_rgb(temp_filename)
+    if mode == SteganographyMethod.LSB:
+        frames: List[Image.Image] = _read_frames_as_rgb(input_filename)
 
-    if frames:
-        data_bytes: bytes = _compress(data)
+        # The save operation changes a GIF's palette, so we need to re-read it
+        with tempfile.NamedTemporaryFile(suffix=".gif") as temp_file:
+            temp_filename: str = temp_file.name
+            _write_frames_as_rgb(frames, temp_filename)
+            frames = _read_frames_as_rgb(temp_filename)
 
         # Calculate the total available space in the smallest frame
         smallest_frame: Image.Image = min(
             frames, key=lambda frame: frame.size[0] * frame.size[1]
         )
-        total_bits: int = smallest_frame.size[0] * smallest_frame.size[1] * 3
-        total_bytes: int = total_bits // 8  # Convert bits to bytes
+
+        total_bytes = (smallest_frame.size[0] * smallest_frame.size[1] * 3) // 8
 
         if len(data_bytes) > total_bytes:
             raise CapacityError("Input data too large to fit in the input file.")
@@ -68,7 +74,7 @@ def encode(
         filler_bytes: bytes = b"\x00" * (total_bytes - len(data_bytes) - nsym)
 
         # Encode the data with the Reed-Solomon codec
-        binary_data: bytes = _rs_encode_to_binary(data_bytes + filler_bytes, nsym)
+        binary_data: str = _rs_encode_to_binary(data_bytes + filler_bytes, nsym)
 
         # Embed the data in the frames
         for frame in frames:
@@ -76,3 +82,19 @@ def encode(
             _embed_data_in_frame_lsb(frame, binary_data)
 
         _write_frames_as_rgb(frames, output_filename)
+
+    elif mode == SteganographyMethod.CSHIFT:
+        frames: List[Image.Image] = _read_frames_as_p(input_filename)
+
+        # Encode the data with the Reed-Solomon codec
+        binary_data: str = _rs_encode_to_binary(data_bytes + b"\x00", nsym)
+
+        # Embed the data in the frames
+        for frame in frames:
+            # Mirror the data to embed it in all frames
+            _embed_data_in_frame_cshift(frame, binary_data)
+
+        _write_frames_as_p(frames, output_filename)
+
+    else:
+        raise NotImplementedError(f"Steganography method '{mode}' is not implemented.")

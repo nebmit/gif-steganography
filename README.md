@@ -1,19 +1,23 @@
 # GIF Steganography
 
+[![Tests](https://github.com/nebmit/gif-steganography/actions/workflows/python-package.yml/badge.svg)](https://github.com/nebmit/gif-steganography/actions/workflows/python-package.yml)
+[![PyPI version](https://badge.fury.io/py/gif-steganography.svg)](https://badge.fury.io/py/gif-steganography)
+[![Dependencies](https://img.shields.io/librariesio/release/pypi/gif-steganography)](https://libraries.io/pypi/gif-steganography)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python version](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+
 ## Overview
 
-This project implements GIF steganography using the Least Significant Bit (LSB) technique, coupled with additional layers of security and integrity verification. It enables the encoding of secret messages into GIF images and the decoding of these messages from the images, ensuring the message's secrecy and integrity through encryption, compression, and error correction.
+This project implements GIF steganography using various techniques, coupled with additional layers of security and integrity verification. It enables the encoding of secret messages into GIF images and the decoding of these messages from the images, ensuring the message's secrecy and integrity through encryption, compression, and error correction.
 
 ## Installation
 
 ```bash
 pip install gif-steganography
 ```
-Requires Python 3.10^. Installs the package and all necessary dependencies.
+Requires Python >= 3.10. Installs the package and all necessary dependencies.
 
 ## Usage
-
-### CLI
 
 #### Encode a Message
 
@@ -38,10 +42,10 @@ Beyond the command-line interface, `gif-steganography` also provides direct API 
 Embed and retrieve messages programmatically:
 
 ```python
-from gif_steganography import encode, decode
+from gif_steganography import SteganographyMethod, decode, encode
 
 # Embed a message
-encode("input.gif", "output.gif", "Hello, world!")
+encode("input.gif", "output.gif", "Hello, world!", mode=SteganographyMethod.LSB)
 
 # Retrieve a message
 message, _ = decode("output.gif")
@@ -53,10 +57,10 @@ print(message)  # Output: Hello, world!
 For added security, use encryption with your messages:
 
 ```python
-from gif_steganography import encode, decode
+from gif_steganography import SteganographyMethod, decode, encode
 
 # Securely embed a message
-encode("input.gif", "output.gif", "Hello, world!", passphrase="password")
+encode("input.gif", "output.gif", "Hello, world!", passphrase="password", mode=SteganographyMethod.CSHIFT)
 
 # Securely retrieve a message
 message, _ = decode("output.gif", passphrase="password")

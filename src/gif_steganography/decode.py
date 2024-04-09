@@ -9,7 +9,8 @@ from .common import CorruptDataError, InvalidPassphraseError, SteganographyMetho
 from .lib._compression import _decompress
 from .lib._ecc import _rs_decode_from_binary
 from .lib._encryption import _decrypt_message
-from .lib._gif import _read_frames_as_rgb
+from .lib._gif import _read_frames_as_p, _read_frames_as_rgb
+from .modes._cshift import _extract_data_from_frame_cshift
 from .modes._lsb import _extract_data_from_frame_lsb
 
 
@@ -35,17 +36,33 @@ def decode(
     Returns:
         Tuple[str, bool]: A tuple containing the decoded message and a boolean indicating if the message is corrupt.
     """
-    frames = _read_frames_as_rgb(input_filename)
-
+    binary_data_list: List[str] = []
     messages: List[bytes] = []
     is_corrupt: bool = False
 
-    for frame in frames:
-        # Extract the binary data from the frame
-        binary_data: str = _extract_data_from_frame_lsb(frame)
-        if len(binary_data) == 0:
-            continue  # An empty frame could exist if it's a palette frame
+    if mode == SteganographyMethod.LSB:
+        frames = _read_frames_as_rgb(input_filename)
+        for frame in frames:
+            # Extract the binary data from the frame
+            binary_data: str = _extract_data_from_frame_lsb(frame)
+            if len(binary_data) == 0:
+                continue
 
+            binary_data_list.append(binary_data)
+
+    elif mode == SteganographyMethod.CSHIFT:
+        frames = _read_frames_as_p(input_filename)
+        for frame in frames:
+            # Extract the binary data from the frame
+            binary_data: str = _extract_data_from_frame_cshift(frame)
+            if len(binary_data) == 0:
+                continue
+
+            binary_data_list.append(binary_data)
+    else:
+        raise NotImplementedError(f"Steganography method '{mode}' is not implemented.")
+
+    for binary_data in binary_data_list:
         # Decode the Reed-Solomon encoded data
         try:
             data_bytes: bytes = _rs_decode_from_binary(binary_data, nsym)
