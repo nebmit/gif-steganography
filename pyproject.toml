@@ -1,6 +1,6 @@
 [project]
 name = "gif-steganography"
-version = "0.0.1"
+version = "0.1.0"
 description = "A Python GIF steganography library supporting encryption to embed and extract secure messages within GIF images."
 authors = [
     {name = "nebmit", email = "76664673+nebmit@users.noreply.github.com"},
