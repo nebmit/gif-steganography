@@ -86,6 +86,9 @@ def encode(
     elif mode == SteganographyMethod.CSHIFT:
         frames: List[Image.Image] = _read_frames_as_p(input_filename)
 
+        # Cut the first frame
+        frames = frames[1:]
+
         # Encode the data with the Reed-Solomon codec
         binary_data: str = _rs_encode_to_binary(data_bytes + b"\x00", nsym)
 
