@@ -10,10 +10,12 @@
 
 This project implements GIF steganography using various techniques, coupled with additional layers of security and integrity verification. It enables the encoding of secret messages into GIF images and the decoding of these messages from the images, ensuring the message's secrecy and integrity through encryption, compression, and error correction.
 
-<div style="display: flex; gap: 10px;">
-  <img src="docs/input.gif" alt="Input GIF" style="max-width: 45%; height: auto;">
-  <img src="docs/output.gif" alt="Output GIF" style="max-width: 45%; height: auto;">
-</div>
+<table>
+  <tr>
+    <td align="center"><img src="docs/input.gif" alt="Input GIF" width="300"></td>
+    <td align="center"><img src="docs/output.gif" alt="Output GIF" width="300"></td>
+  </tr>
+</table>
 
 One of these GIFs contains a dragon. Can you find it? (Hint: the passphrase is "dragon".)
 
