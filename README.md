@@ -10,27 +10,35 @@
 
 This project implements GIF steganography using various techniques, coupled with additional layers of security and integrity verification. It enables the encoding of secret messages into GIF images and the decoding of these messages from the images, ensuring the message's secrecy and integrity through encryption, compression, and error correction.
 
+![Input GIF](docs/input.gif)
+![Output GIF](docs/output.gif)
+
+One of these GIFs contains a dragon. Can you find it? (Hint: the passphrase is "dragon".)
+
 ## Installation
 
 ```bash
 pip install gif-steganography
 ```
+
 Requires Python >= 3.10. Installs the package and all necessary dependencies.
 
 ## Usage
 
-#### Encode a Message
+### Encode a Message
 
 ```bash
 gif-steganography encode <input.gif> <output.gif> "Secret Message" "Passphrase" [--nsym 10]
 ```
+
 - `--nsym` (optional): Sets the Reed-Solomon error correction level. Default is 10.
 
-#### Decode a Message
+### Decode a Message
 
 ```bash
 gif-steganography decode <encoded.gif> "Passphrase" [--nsym 10]
 ```
+
 - `--nsym` must match the encoding setting for successful decryption.
 
 ### Programmatic Usage
