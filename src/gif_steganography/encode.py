@@ -21,7 +21,7 @@ def encode(
     input_filename: str,
     output_filename: str,
     message: str,
-    mode: SteganographyMethod = SteganographyMethod.LSB,
+    mode: SteganographyMethod = SteganographyMethod.CSHIFT,
     nsym: int = 10,
     passphrase: str | None = None,
 ) -> None:

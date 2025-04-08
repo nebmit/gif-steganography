@@ -16,7 +16,7 @@ from .modes._lsb import _extract_data_from_frame_lsb
 
 def decode(
     input_filename: str,
-    mode: SteganographyMethod = SteganographyMethod.LSB,
+    mode: SteganographyMethod = SteganographyMethod.CSHIFT,
     nsym: int = 10,
     passphrase: str | None = None,
 ) -> Tuple[str | bytes, bool]:
