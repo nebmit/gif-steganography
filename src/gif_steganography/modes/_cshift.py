@@ -1,9 +1,10 @@
+from functools import lru_cache
 from typing import List, Tuple
 
+import numpy as np
 from PIL import Image
 
 from ..common import CapacityError, InternalError
-from ..lib._ecc import _rs_encode_to_binary, _rs_decode_from_binary
 
 
 def _simplify_palette(image: Image.Image) -> None:
@@ -39,19 +40,26 @@ def _simplify_palette(image: Image.Image) -> None:
     # Update the image palette
     image.putpalette(new_palette)
 
-    # Replace the pixels with the new color indexes
-    pixels = image.load()
-    width, height = image.size
-    for y in range(height):
-        for x in range(width):
-            pixel = pixels[x, y]
-            new_pixel = min(
-                range(len(new_colors)),
-                key=lambda i: _color_distance(new_colors[i], colors[pixel]),
-            )
-            pixels[x, y] = new_pixel
+    # Precompute the optimal new color for every original palette index
+    mapping = [
+        min(
+            range(len(new_colors)),
+            key=lambda i: _color_distance(new_colors[i], orig_color),
+        )
+        for orig_color in colors
+    ]
+
+    # Convert image to a NumPy array (assumes image is in mode 'P')
+    img_array = np.array(image)
+    # Apply the mapping using np.take (mapping should be a sequence of new pixel values)
+    new_img_array = np.take(mapping, img_array)
+
+    # Reconstruct the image and update its palette
+    image = Image.fromarray(new_img_array.astype("uint8"), mode="P")
+    image.putpalette(new_palette)
 
 
+@lru_cache(maxsize=None)
 def _color_distance(color1: Tuple[int, int, int], color2: Tuple[int, int, int]) -> int:
     return max(abs(c1 - c2) for c1, c2 in zip(color1, color2))
 
@@ -103,6 +111,9 @@ def _find_most_used_color(image: Image.Image) -> Tuple[int, Tuple[int, int, int]
     # Count color usage
     color_counts = {i: 0 for i in range(len(colors))}
     for pixel in image.getdata():
+        if pixel not in color_counts:
+            # If the pixel color is not in the palette, skip it
+            continue
         color_counts[pixel] += 1
 
     # Find the most used color index
