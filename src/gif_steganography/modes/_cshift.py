@@ -153,15 +153,6 @@ def _create_data_pair(image: Image.Image, original_color_index: int) -> None:
     new_colors = _get_colors(image)
     color_index_map = _build_color_index_map(new_colors)
 
-    # If image supports transparency
-    if image.info.get("transparency") is not None:
-        transparency = image.info.get("transparency")
-        color_that_was_transparent = transparency
-        color_that_should_be_transparent = color_index_map.get(
-            color_that_was_transparent, -1
-        )
-        image.info["transparency"] = color_that_should_be_transparent
-
     if sum(original_color) == 255 * 3:
         # Since the original color is white, we need to swap
         pixels = image.load()
@@ -204,6 +195,10 @@ def _embed_data(
 
 
 def _embed_data_in_frame_cshift(image: Image, data: str) -> Image.Image:
+    if image.info.get("transparency") is not None:
+        transparency = image.info.get("transparency")
+        color_that_was_transparent = _get_colors(image)[transparency]
+
     _simplify_palette(image)
 
     most_used_color_index = _find_most_used_color(image)
@@ -215,6 +210,13 @@ def _embed_data_in_frame_cshift(image: Image, data: str) -> Image.Image:
 
     original_color_index = color_index_map.get(original_color, -1)
     varied_color_index = color_index_map.get(varied_color, -1)
+
+    if image.info.get("transparency") is not None:
+        mapped_transparency = min(
+            range(len(colors)),
+            key=lambda i: _color_distance(colors[i], color_that_was_transparent),
+        )
+        image.info["transparency"] = mapped_transparency
 
     _embed_data(image, data, original_color_index, varied_color_index)
 
