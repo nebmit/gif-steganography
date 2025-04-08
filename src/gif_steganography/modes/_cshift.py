@@ -76,18 +76,15 @@ def _get_colors(
     return colors
 
 
-def _get_color_index(
-    colors: List[Tuple[int, int, int]], color: Tuple[int, int, int]
-) -> int:
-    color_index = -1
-    for i, c in enumerate(colors):
-        if c == color:
-            if color_index != -1:
-                raise InternalError(
-                    f"Color {color} at index {i} is not unique in the palette."
-                )
-            color_index = i
-    return color_index
+def _build_color_index_map(
+    colors: List[Tuple[int, int, int]]
+) -> dict[Tuple[int, int, int], int]:
+    mapping = {}
+    for i, color in enumerate(colors):
+        if color in mapping:
+            raise InternalError(f"Color {color} appears more than once in the palette.")
+        mapping[color] = i
+    return mapping
 
 
 def _combine_duplicate_colors(image: Image.Image) -> None:
@@ -97,12 +94,26 @@ def _combine_duplicate_colors(image: Image.Image) -> None:
     new_palette = [channel for color in unique_colors for channel in color]
     image.putpalette(new_palette)
 
-    # Combine colors that are equal
-    pixels = image.load()
-    width, height = image.size
-    for y in range(height):
-        for x in range(width):
-            pixels[x, y] = _get_color_index(unique_colors, colors[pixels[x, y]])
+    color_index_map = _build_color_index_map(unique_colors)
+
+    # Precompute the lookup: for each index in the original palette,
+    # map it to the new palette index.
+    lookup = np.array(
+        [color_index_map[colors[i]] for i in range(len(colors))], dtype=np.uint8
+    )
+
+    # Convert image to a NumPy array (assumes image is in mode "P").
+    img_arr = np.array(image)
+
+    # Remap all pixels at once using vectorized indexing.
+    new_img_arr = lookup[img_arr]
+
+    # Create a new image from the remapped array.
+    new_image = Image.fromarray(new_img_arr, mode="P")
+    new_image.putpalette(new_palette)
+
+    # Update the original image in-place.
+    image.paste(new_image)
 
 
 def _find_most_used_color(image: Image.Image) -> Tuple[int, Tuple[int, int, int]]:
@@ -140,13 +151,14 @@ def _create_data_pair(image: Image.Image, original_color_index: int) -> None:
     image.putpalette(new_palette)
 
     new_colors = _get_colors(image)
+    color_index_map = _build_color_index_map(new_colors)
 
     # If image supports transparency
     if image.info.get("transparency") is not None:
         transparency = image.info.get("transparency")
         color_that_was_transparent = transparency
-        color_that_should_be_transparent = _get_color_index(
-            new_colors, color_that_was_transparent
+        color_that_should_be_transparent = color_index_map.get(
+            color_that_was_transparent, -1
         )
         image.info["transparency"] = color_that_should_be_transparent
 
@@ -157,7 +169,7 @@ def _create_data_pair(image: Image.Image, original_color_index: int) -> None:
         for y in range(height):
             for x in range(width):
                 if pixels[x, y] == original_color_index:
-                    pixels[x, y] = _get_color_index(new_colors, varied_color)
+                    pixels[x, y] = color_index_map.get(varied_color, -1)
         return varied_color, original_color
 
     return original_color, varied_color
@@ -199,8 +211,10 @@ def _embed_data_in_frame_cshift(image: Image, data: str) -> Image.Image:
 
     # Get the index of the varied color
     colors = _get_colors(image)
-    original_color_index = _get_color_index(colors, original_color)
-    varied_color_index = _get_color_index(colors, varied_color)
+    color_index_map = _build_color_index_map(colors)
+
+    original_color_index = color_index_map.get(original_color, -1)
+    varied_color_index = color_index_map.get(varied_color, -1)
 
     _embed_data(image, data, original_color_index, varied_color_index)
 
@@ -232,6 +246,8 @@ def _extract_data_from_frame_cshift(image: Image) -> str:
     _combine_duplicate_colors(image)
 
     colors = _get_colors(image)
+    color_index_map = _build_color_index_map(colors)
+
     for i, color1 in enumerate(colors):
         for j, color2 in enumerate(colors):
             if i == j:
@@ -239,11 +255,11 @@ def _extract_data_from_frame_cshift(image: Image) -> str:
             if 1 <= _color_distance(color1, color2) <= 3:
                 # The higher color value is the varied color
                 if _color_size(color1) > _color_size(color2):
-                    varied_color_index = _get_color_index(colors, color1)
-                    most_used_color_index = _get_color_index(colors, color2)
+                    varied_color_index = color_index_map.get(color1, -1)
+                    most_used_color_index = color_index_map.get(color2, -1)
                 else:
-                    most_used_color_index = _get_color_index(colors, color1)
-                    varied_color_index = _get_color_index(colors, color2)
+                    most_used_color_index = color_index_map.get(color1, -1)
+                    varied_color_index = color_index_map.get(color2, -1)
                 break
 
     extracted_data = _extract_data(image, most_used_color_index, varied_color_index)
