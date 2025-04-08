@@ -46,14 +46,13 @@ def main():
             args.input_file,
             args.output_file,
             args.text,
-            args.passphrase,
-            args.nsym,
+            nsym=args.nsym,
             passphrase=args.passphrase,
         )
     elif args.command == "decode":
         try:
             data, is_corrupt = decode(
-                args.input_file, args.passphrase, args.nsym, passphrase=args.passphrase
+                args.input_file, nsym=args.nsym, passphrase=args.passphrase
             )
             if is_corrupt:
                 print(
