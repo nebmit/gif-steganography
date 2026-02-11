@@ -1,4 +1,4 @@
 cryptography
 numpy==2.2.4
-Pillow==10.3.0
+Pillow==12.1.1
 reedsolo==1.7.0
