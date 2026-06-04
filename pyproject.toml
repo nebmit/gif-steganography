@@ -6,7 +6,7 @@ authors = [
     {name = "nebmit", email = "76664673+nebmit@users.noreply.github.com"},
 ]
 license = {text = "MIT"}
-dependencies = ["Pillow==12.1.1", "reedsolo==1.7.0", "cryptography", "numpy==2.2.4"]
+dependencies = ["Pillow==12.2.0", "reedsolo==1.7.0", "cryptography", "numpy==2.2.4"]
 requires-python = ">=3.10"
 readme = "README.md"
 
